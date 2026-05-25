@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Акт Списания ГКУ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📄 Генератор актов списания</h2>
+<div>
+  <span class="me-3 text-muted">👤 {{ username }}</span>
+  <a href="/logout" class="btn btn-sm btn-outline-danger">Выйти</a>
+</div>
+  </div>
+
+  <form id="genForm" class="card p-4 mb-4 shadow-sm" enctype="multipart/form-data">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">📊 Excel-список техники</label>
+        <input type="file" class="form-control" name="excel" accept=".xlsx" required>
+        <small class="text-muted">B: Конфигурация | C: Инв. номер | D(опц.): 1/2/3</small>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">📝 Word-шаблон акта</label>
+        <input type="file" class="form-control" name="template" accept=".docx" required>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3 w-100">🚀 Сгенерировать акты</button>
+    <div id="status" class="mt-2 text-center fw-bold"></div>
+  </form>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>📜 История и отчёты</h4>
+    <button onclick="fetch('/backup', {method:'POST'}).then(r=>r.json()).then(d=>alert(d.message))" class="btn btn-sm btn-outline-secondary">💾 Бэкап БД</button>
+  </div>
+
+  <div class="table-responsive bg-white rounded shadow-sm p-3">
+    <table class="table table-hover">
+      <thead><tr><th>ID</th><th>Дата</th><th>Всего</th><th>Создано</th><th>Пропущено</th><th>Статус</th><th>Файлы</th></tr></thead>
+      <tbody>
+        {% for h in history %}
+        <tr>
+          <td>{{ h.id }}</td>
+          <td>{{ h.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+          <td>{{ h.total }}</td>
+          <td>{{ h.created }}</td>
+          <td>{{ h.skipped }}</td>
+          <td><span class="badge bg-{{ 'success' if h.status=='completed' else 'warning' if h.status=='processing' else 'danger' }}">{{ h.status }}</span></td>
+          <td>
+            {% if h.report_file %}
+              <a href="/download/{{ h.report_file }}" class="btn btn-sm btn-outline-primary me-1">📊 Excel</a>
+              <span class="text-muted small">(PDF создаются авто)</span>
+            {% else %}-{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+  document.getElementById('genForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const status = document.getElementById('status');
+    const btn = e.target.querySelector('button[type="submit"]');
+    status.textContent = '⏳ Обработка запущена...';
+    btn.disabled = true;
+    const fd = new FormData(e.target);
+    try {
+      const res = await fetch('/generate', {method: 'POST', body: fd});
+      const data = await res.json();
+      status.innerHTML = res.ok ? `✅ ${data.message}` : `❌ ${data.detail}`;
+      if(res.ok) setTimeout(() => location.reload(), 2000);
+    } catch(err) { status.textContent = '❌ Ошибка сети'; }
+    finally { btn.disabled = false; }
+  });
+</script>
+</body>
+</html>

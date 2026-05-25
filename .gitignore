@@ -1,0 +1,19 @@
+# Sensitive Environment Variables
+.env
+.env.local
+
+# Output Files and Directories
+# (Adjust these names to match your actual output folders)
+outputs/
+volumes/outputs/
+*.csv
+*.xlsx
+*.json
+
+# Python Specific (Caches and Virtual Environments)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
