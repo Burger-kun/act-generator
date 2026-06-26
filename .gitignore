@@ -3,7 +3,6 @@
 .env.local
 
 # Output Files and Directories
-# (Adjust these names to match your actual output folders)
 outputs/
 volumes/outputs/
 *.csv
